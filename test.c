@@ -2,14 +2,16 @@
 
 int main()
 {
-    int nim;
-    char str[100];
-    printf("Masukkan Formulir Data Mahasiswa ini\n");
-    printf("NIM : ");
-    scanf("%d", &nim);
-    printf("Nama : ");
-    scanf(" %[^\n]s", str);
-    printf("%s", str);
+    // int my = 100000000;
+
+    // printf("%d\n", my);
+    // printf("%lu\n", sizeof(int));
+    int a = 0;
+    printf("%d\n", a++);
+    printf("%d\n", a);
+    a = 0;
+    printf("%d\n", ++a);
+    printf("%d\n", a);
 
     return 0;
 }
