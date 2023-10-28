@@ -1,106 +1,108 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <stdbool.h>
 
-// Node
+const int MAX = 20;
+
 typedef struct node
 {
-    char nama[20];
-    int alpro;
-    int kalkulus;
+    int value;
+    struct node *prev;
     struct node *next;
-} mhs;
+} *queue;
 
-int count = 0;
-
-// Function to Create A New Node
-mhs *newmhs(char a[], int alp, int kal)
+void initialize(queue *rear, queue *front)
 {
-    mhs *temp = (mhs *)malloc(sizeof(mhs));
-    strcpy(temp->nama, a);
-    temp->alpro = alp;
-    temp->kalkulus = kal;
-    temp->next = NULL;
-
-    return temp;
 }
 
-// menghapus pendaftar
-void dequeue(mhs **head)
+queue createNode(int num)
 {
-    if ((*head) != NULL)
-    {
-        mhs *temp = *head;
-        (*head) = (*head)->next;
-        free(temp);
-    }
+    queue newNode;
+    newNode = (queue)malloc(sizeof(struct node));
+    newNode->value = num;
+    newNode->prev = NULL;
+    newNode->next = NULL;
+    return (newNode);
 }
 
-void enqueue(mhs **head, char n[], int alp, int kal)
+int size(queue rear)
 {
-    mhs *temp = newmhs(n, alp, kal);
-
-    if ((*head) == NULL)
+    int count = 0;
+    queue cursor;
+    cursor = rear;
+    while (cursor != NULL)
     {
-        (*head) = temp;
+        count += 1;
+        cursor = cursor->prev;
     }
+    return count;
+}
 
-    else if (alp > (*head)->alpro)
-    {
-        temp->next = *head;
-        (*head) = temp;
-    }
+bool isFull(queue rear)
+{
+    return (size(rear) > MAX);
+}
 
+bool isEmpty(queue front)
+{
+    return front == NULL;
+}
+
+void enqueue(queue *rear, queue *front, int num)
+{
+    if (isFull(*rear))
+        printf("Antrian Penuh\n");
     else
     {
-        if (kal > (*head)->kalkulus)
+        queue temp = createNode(num);
+        temp->prev = *rear;
+        if (*rear == NULL)
         {
-            temp->next = *head;
-            (*head) = temp;
+            *rear = temp;
         }
-
         else
         {
-            mhs *start = (*head);
-
-            while (start->next != NULL && start->next->kalkulus > kal)
-            {
-                start = start->next;
-            }
-
-            temp->next = start->next;
-            start->next = temp;
+            (*rear)->next = temp;
         }
-    }
 
-    count++;
+        if (*front == NULL)
+            *front = *rear;
+    }
 }
 
-void display(mhs *head)
+queue dequeue(queue front)
 {
-    if (head == NULL)
-    {
-        printf("Belum ada yang daftar\n");
-    }
+    if (isEmpty(front))
+        return NULL;
     else
     {
-        printf("Nama:%s Alpro: %d Kalkulus: %d\n", head->nama, head->alpro, head->kalkulus);
-        display(head->next);
+        queue temp = front;
+        front = front->next;
+        temp->next = NULL;
+        front->prev = NULL;
+        free(temp);
+        return front;
     }
 }
 
 int main()
 {
-    mhs *wakil = NULL;
+    queue front = NULL, rear = NULL;
 
-    enqueue(&wakil, "Eko", 50, 20);
-    enqueue(&wakil, "Budi", 50, 20);
-    enqueue(&wakil, "bambang", 60, 20);
-    enqueue(&wakil, "Eka", 60, 20);
-    enqueue(&wakil, "wawo", 60, 20);
-    enqueue(&wakil, "Ame", 60, 30);
+    printf("halo");
+    int i = 0;
+    while (i < 10)
+    {
+        printf("%d", i);
+        enqueue(&rear, &front, i);
+        printf("%d %d", rear->value, front->value);
+        i++;
+    }
 
-    display(wakil);
-
-    return 0;
+    printf("  Kata terbalik: ");
+    while (!isEmpty(front))
+    {
+        printf("%d", front->value);
+        front = dequeue(front);
+    }
 }
