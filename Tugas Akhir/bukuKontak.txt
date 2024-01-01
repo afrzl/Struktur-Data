@@ -1,0 +1,6 @@
+name;dob;sex;no_telp;email;
+afrizal;2003-6-5;L;081234567890;afrizal@gmail.com;
+atib;1969-2-5;L;08123456;atib@gmail.com;
+aul;2003-3-10;P;0883249;aul@gmail.com;
+aul;1972-2-29;P;08123;azizah@gmail.com;
+faizin;2009-11-5;L;080987654321;faizin@gmail.com;
