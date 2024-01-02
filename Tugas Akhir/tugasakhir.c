@@ -19,6 +19,7 @@ struct dob presentDate;
 
 struct contact
 {
+    int _id;
     char name[100];
     struct dob dob;
     char sex;
@@ -29,8 +30,17 @@ struct contact
 };
 typedef struct contact *ptrContact;
 
+typedef struct
+{
+    int data[100];
+    int front;
+    int rear;
+} Queue;
+
 ptrContact head = NULL;
 unsigned int countContact = 0;
+int _id = 0;
+int adj[100][100] = {0};
 
 int calculateAge(ptrContact data)
 {
@@ -45,7 +55,7 @@ void printSinglyContact(ptrContact data, int i)
            "|     Umur\t: %-29d |\n"
            "|     JK\t: %-29c |\n"
            "|     Email\t: %-29s |\n",
-           i,
+           data->_id,
            data->no_telp,
            data->name,
            data->dob.day, data->dob.month, data->dob.year,
@@ -78,6 +88,7 @@ ptrContact copyNode(ptrContact data)
 {
     ptrContact newNode = (ptrContact)malloc(sizeof(struct contact));
 
+    newNode->_id = data->_id;
     strcpy(newNode->name, data->name);
     strcpy(newNode->no_telp, data->no_telp);
     newNode->dob = data->dob;
@@ -86,6 +97,19 @@ ptrContact copyNode(ptrContact data)
     newNode->next = NULL;
 
     return newNode;
+}
+
+ptrContact searhchById(int _id)
+{
+    ptrContact tmp = head;
+    while (tmp != NULL)
+    {
+        if (tmp->_id == _id)
+            return copyNode(tmp);
+        tmp = tmp->next;
+    }
+
+    return tmp;
 }
 
 ptrContact searchByTelp(char *no_telp)
@@ -263,6 +287,8 @@ void createData()
     printf(">> Masukkan Email: ");
     scanf(" %[^\n]s", newData->email);
     newData->next = NULL;
+    _id++;
+    newData->_id = _id;
 
     head = insert(newData);
     printf("\n>> Data berhasil dibuat\n");
@@ -464,7 +490,7 @@ int deleteProcess(char *no_telp)
     {
         head = temp->next;
         free(temp);
-        return;
+        return 0;
     }
 
     while (temp != NULL && strcmp(temp->no_telp, no_telp) != 0)
@@ -479,6 +505,7 @@ int deleteProcess(char *no_telp)
     prev->next = temp->next;
 
     free(temp);
+    countContact--;
     return 0;
 }
 
@@ -724,6 +751,8 @@ int loadData()
             p = strtok(NULL, ";-");
         }
         newData->next = NULL;
+        _id++;
+        newData->_id = _id;
         insert(newData);
     }
 
@@ -731,6 +760,205 @@ int loadData()
     printf(">> Data Berhasil Diupload\n");
 
     return 0;
+}
+
+void initQueue(Queue *q)
+{
+    q->front = -1;
+    q->rear = -1;
+}
+
+bool isQueueEmpty(Queue *q)
+{
+    return q->front == -1;
+}
+
+bool isQueueFull(Queue *q)
+{
+    return (q->rear + 1) % 100 == q->front;
+}
+
+void enqueue(Queue *q, int value)
+{
+    if (isQueueFull(q))
+    {
+        printf("Queue is full\n");
+        return;
+    }
+    if (isQueueEmpty(q))
+    {
+        q->front = 0;
+    }
+    q->rear = (q->rear + 1) % 100;
+    q->data[q->rear] = value;
+}
+
+int dequeue(Queue *q)
+{
+    if (isQueueEmpty(q))
+    {
+        printf("Queue is empty\n");
+        return -1;
+    }
+    int value = q->data[q->front];
+    if (q->front == q->rear)
+    {
+        q->front = -1;
+        q->rear = -1;
+    }
+    else
+    {
+        q->front = (q->front + 1) % 100;
+    }
+    return value;
+}
+
+void add_edge(int src, int dest)
+{
+    adj[src][dest] = 1;
+    adj[dest][src] = 1;
+}
+
+bool BFS(int src, int dest, int pred[], int dist[])
+{
+    bool visited[100];
+    for (int i = 0; i < _id; i++)
+    {
+        visited[i] = false;
+        dist[i] = __INT_MAX__;
+        pred[i] = -1;
+    }
+    visited[src] = true;
+    dist[src] = 0;
+    Queue q;
+    initQueue(&q);
+    enqueue(&q, src);
+    while (!isQueueEmpty(&q))
+    {
+        int u = dequeue(&q);
+        for (int i = 0; i < _id; i++)
+        {
+            if (adj[u][i] == 1 && !visited[i])
+            {
+                visited[i] = true;
+                dist[i] = dist[u] + 1;
+                pred[i] = u;
+                enqueue(&q, i);
+                if (i == dest)
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void printShortestDistance(int source, int dest)
+{
+    int pred[100], dist[100];
+    if (!BFS(source, dest, pred, dist))
+    {
+        printf(">> Kontak tidak terhubung satu sama lain.\n");
+        return;
+    }
+
+    int path[100];
+    int crawl = dest;
+    int count = 0;
+    path[count++] = crawl;
+    while (pred[crawl] != -1)
+    {
+        path[count++] = pred[crawl];
+        crawl = pred[crawl];
+    }
+
+    if (dist[dest] == 1)
+    {
+        printf(">> Kontak terhubung langsung.\n");
+        return;
+    }
+
+    printf(">> Kontak tidak terhubung langsung, silahkan menghubungi: \n");
+
+    for (int i = count - 2; i >= 0; i--)
+    {
+        ptrContact result = searhchById(path[i]);
+        printf("%s (%s)\n", result->name, result->no_telp);
+    }
+}
+
+int addKonektivitas(char *source, char *dest)
+{
+}
+
+void konektivitasData()
+{
+    printf("\n=================================================\n"
+           "|\t\tMENU BUAT KONEKTIVITAS\t\t|\n"
+           "-------------------------------------------------\n");
+    char source[15], dest[15];
+    int _source_id, _dest_id;
+    do
+    {
+        printf(">> Masukkan No. Telp Sumber: ");
+        scanf(" %[^\n]s", source);
+        ptrContact result = searchByTelp(source);
+        if (result != NULL)
+        {
+            _source_id = result->_id;
+            break;
+        }
+    } while (1);
+
+    do
+    {
+        printf(">> Masukkan No. Telp Tujuan: ");
+        scanf(" %[^\n]s", dest);
+        ptrContact result = searchByTelp(dest);
+        if (result != NULL)
+        {
+            _dest_id = result->_id;
+            break;
+        }
+    } while (1);
+
+    add_edge(_source_id, _dest_id);
+    printf(" Sukses membuat konektivitas antara 2 kontak.\n");
+}
+
+void cekKonektivitas()
+{
+    printf("\n=================================================\n"
+           "|\t\tMENU CEK KONEKTIVITAS\t\t|\n"
+           "-------------------------------------------------\n");
+    char source[15], dest[15];
+    int _source_id, _dest_id;
+    do
+    {
+        printf(">> Masukkan No. Telp Sumber: ");
+        scanf(" %[^\n]s", source);
+        ptrContact result = searchByTelp(source);
+        if (result != NULL)
+        {
+            _source_id = result->_id;
+            break;
+        }
+    } while (1);
+
+    do
+    {
+        printf(">> Masukkan No. Telp Tujuan: ");
+        scanf(" %[^\n]s", dest);
+        ptrContact result = searchByTelp(dest);
+        if (result != NULL)
+        {
+            _dest_id = result->_id;
+            break;
+        }
+    } while (1);
+
+    printShortestDistance(_source_id, _dest_id);
 }
 
 int main()
@@ -756,6 +984,8 @@ int main()
                "| [5]. Cari Kontak\t\t\t\t|\n"
                "| [6]. Save Kontak\t\t\t\t|\n"
                "| [7]. Load Kontak\t\t\t\t|\n"
+               "| [8]. Buat Konektifitas\t\t\t|\n"
+               "| [9]. Cek Konektifitas\t\t\t\t|\n"
                "| [0]. Keluar\t\t\t\t\t|\n"
                "=================================================\n");
         printf(">> Masukkan Menu : ");
@@ -795,6 +1025,16 @@ int main()
 
         case 7:
             loadData();
+            getch();
+            break;
+
+        case 8:
+            konektivitasData();
+            getch();
+            break;
+
+        case 9:
+            cekKonektivitas();
             getch();
             break;
 
